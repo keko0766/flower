@@ -1,6 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-// Connected in stage 2. Keys live in .env.local (see .env.example).
+// Browser client; the admin session lives in cookies shared with the server client.
 export function createClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

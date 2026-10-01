@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Cormorant, Montserrat } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -9,18 +8,8 @@ import Analytics from "@/components/Analytics";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Toaster from "@/components/cart/Toaster";
+import { cormorant, montserrat } from "@/lib/fonts";
 import "../globals.css";
-
-const montserrat = Montserrat({
-  variable: "--font-montserrat",
-  subsets: ["latin", "cyrillic", "cyrillic-ext"],
-});
-
-const cormorant = Cormorant({
-  variable: "--font-cormorant",
-  subsets: ["latin", "cyrillic", "cyrillic-ext"],
-  weight: ["500", "600"],
-});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

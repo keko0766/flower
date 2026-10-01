@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ақ Гүл — дизайн-система</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,500;0,600;1,500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#FBF7F4;--blush:#E9BABC;--blush-d:#D99A9D;--rose:#B5646B;--ink:#2B2422;--muted:#7A6E6A;--sage:#8A9A7B;--line:#EDE3DE;--r:999px;--rc:20px}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:400 16px/1.6 Montserrat,sans-serif;padding:32px 16px}
+.w{max-width:1000px;margin:auto}h1,h2,.serif{font-family:Cormorant,serif;font-weight:500;line-height:1.1}
+h1{font-size:56px;margin:0}h2{font-size:34px;margin:48px 0 16px}.lbl{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.sw{width:140px}.sw div{height:80px;border-radius:14px;border:1px solid var(--line)}.sw p{margin:6px 0 0;font-size:13px}
+.btn{border:0;border-radius:var(--r);padding:14px 30px;font:500 15px Montserrat;cursor:pointer;transition:.25s}
+.p{background:var(--ink);color:#fff}.p:hover{background:var(--rose)}.s{background:var(--blush);color:var(--ink)}.s:hover{background:var(--blush-d)}
+.o{background:none;border:1px solid var(--ink);color:var(--ink)}.o:hover{background:var(--ink);color:#fff}
+.chip{border:1px solid var(--line);background:#fff;border-radius:var(--r);padding:8px 18px;font-size:14px}.chip.on{background:var(--blush);border-color:var(--blush)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+.card{background:#fff;border-radius:var(--rc);overflow:hidden;transition:.3s}.card:hover{transform:translateY(-4px);box-shadow:0 12px 30px #2b242214}
+.img{aspect-ratio:4/5;background:linear-gradient(135deg,#f4d9da,#e9babc 60%,#cfd8c4)}.card .b{padding:16px}.card h3{font:500 24px Cormorant,serif;margin:0}
+.card p{margin:4px 0 12px;font-size:13px;color:var(--muted)}.pr{display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.add{width:40px;height:40px;border-radius:50%;border:0;background:var(--blush);font-size:20px;cursor:pointer}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;font-size:13px}.lang span{padding:6px 14px}.lang .on{background:var(--ink);color:#fff}
+</style></head><body><div class="w">
+<div class="row" style="justify-content:space-between"><div><div class="lbl">Концепт-бренд · Алматы</div><h1>Ақ Гүл</h1></div><div class="lang"><span class="on">РУ</span><span>ҚАЗ</span></div></div>
+<p style="color:var(--muted);max-width:620px">Референс: мягкая пудровая гамма и капсульные кнопки как у celinefloral.kz, но заголовки элегантным антиква-шрифтом и больше воздуха.</p>
+
+<h2>Палитра</h2><div class="row">
+<div class="sw"><div style="background:var(--cream)"></div><p>Cream #FBF7F4<br><small>фон</small></p></div>
+<div class="sw"><div style="background:var(--blush)"></div><p>Blush #E9BABC<br><small>акцент</small></p></div>
+<div class="sw"><div style="background:var(--rose)"></div><p>Rose #B5646B<br><small>ховер, цены</small></p></div>
+<div class="sw"><div style="background:var(--sage)"></div><p>Sage #8A9A7B<br><small>зелень, бейджи</small></p></div>
+<div class="sw"><div style="background:var(--ink)"></div><p>Ink #2B2422<br><small>текст, CTA</small></p></div></div>
+
+<h2>Шрифты</h2>
+<p class="serif" style="font-size:44px;margin:0">Cormorant — Гүлдер жеткізу · Доставка цветов</p>
+<p>Montserrat — основной текст. Әә Ғғ Ққ Ңң Өө Ұұ Үү Һһ Іі — казахские буквы поддерживаются.</p>
+
+<h2>Кнопки и фильтры</h2><div class="row"><button class="btn p">В каталог</button><button class="btn s">В корзину</button><button class="btn o">Подробнее</button></div>
+<div class="row" style="margin-top:16px"><span class="chip on">Все</span><span class="chip">Туған күн</span><span class="chip">Свадьба</span><span class="chip">Монобукеты</span><span class="chip">В коробке</span></div>
+
+<h2>Карточка букета</h2><div class="grid">
+<div class="card"><div class="img"></div><div class="b"><h3>Алма бағы</h3><p>Пионовидные розы, эвкалипт</p><div class="pr">24 900 ₸<button class="add">+</button></div></div></div>
+<div class="card"><div class="img" style="background:linear-gradient(135deg,#fff,#f1e4dc 60%,#dfe5d6)"></div><div class="b"><h3>Ақ таң</h3><p>Белые тюльпаны, маттиола</p><div class="pr">18 500 ₸<button class="add">+</button></div></div></div>
+<div class="card"><div class="img" style="background:linear-gradient(135deg,#f6c9b8,#e79a8f 60%,#b5646b)"></div><div class="b"><h3>Көктем</h3><p>Ранункулюсы, гвоздики</p><div class="pr">31 000 ₸<button class="add">+</button></div></div></div></div>
+
+<h2>Данные бренда (выдуманные)</h2>
+<p>Ақ Гүл · г. Алматы, пр. Абая 52 · +7 (727) 355-12-12 · WhatsApp +7 707 355 1212 · @akgul.flowers · hello@akgul.kz · ежедневно 08:00–22:00 · доставка от 2 000 ₸, бесплатно от 30 000 ₸</p>
+</div></body></html>

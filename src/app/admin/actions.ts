@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/supabase/server";
 
 // Every action re-checks the admin session; RLS (is_admin()) enforces it again in the database.
 
-const STATUSES = ["new", "preparing", "delivering", "done", "cancelled"] as const;
+const STATUSES = ["new", "sold", "cancelled"] as const;
 export type OrderStatus = (typeof STATUSES)[number];
 
 function refreshShop() {

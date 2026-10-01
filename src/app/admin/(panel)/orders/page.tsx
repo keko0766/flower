@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { STATUS, type Status, fmtDate } from "@/lib/admin";
+import QuickStatus from "@/components/admin/QuickStatus";
 import { formatPrice } from "@/lib/format";
 import { requireAdmin } from "@/lib/supabase/server";
 
@@ -66,9 +67,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
                 </td>
                 <td className="p-4 font-medium">{formatPrice(o.total)}</td>
                 <td className="p-4">
-                  <span className={`rounded-full px-3 py-1 text-xs ${STATUS[o.status as Status].cls}`}>
-                    {STATUS[o.status as Status].label}
-                  </span>
+                  <QuickStatus id={o.id} number={o.number} status={o.status as Status} />
                 </td>
               </tr>
             ))}

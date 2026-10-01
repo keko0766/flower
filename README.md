@@ -1,36 +1,442 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ақ Гүл — сайт цветочного магазина
 
-## Getting Started
+Концепт-проект интернет-магазина цветов в Алматы на двух языках (русский и казахский).
+Все данные (название, контакты, букеты, тексты, отзывы) **вымышлены** и подлежат замене.
 
-First, run the development server:
+- **Сайт:** https://flower-flax-mu.vercel.app/ru
+- **Админка:** https://flower-flax-mu.vercel.app/admin
+- **Репозиторий:** https://github.com/keko0766/flower
+
+---
+
+## Содержание
+
+1. [Что умеет сайт](#1-что-умеет-сайт)
+2. [Технологии](#2-технологии)
+3. [Быстрый старт (локально)](#3-быстрый-старт-локально)
+4. [Переменные окружения](#4-переменные-окружения)
+5. [Структура проекта](#5-структура-проекта)
+6. [Как устроены основные части](#6-как-устроены-основные-части)
+7. [База данных (Supabase)](#7-база-данных-supabase)
+8. [Админ-панель](#8-админ-панель)
+9. [Два языка (i18n)](#9-два-языка-i18n)
+10. [Дизайн-система](#10-дизайн-система)
+11. [SEO и аналитика](#11-seo-и-аналитика)
+12. [Деплой (Vercel)](#12-деплой-vercel)
+13. [Частые задачи — «как сделать…»](#13-частые-задачи--как-сделать)
+14. [Решение проблем](#14-решение-проблем)
+15. [Что ещё не сделано](#15-что-ещё-не-сделано)
+
+---
+
+## 1. Что умеет сайт
+
+**Для покупателя**
+
+| Страница | Адрес | Что там |
+|---|---|---|
+| Главная | `/ru`, `/kk` | Слайдер, поводы, популярные букеты, о магазине, преимущества, отзывы, контакты |
+| Каталог | `/ru/catalog` | Сетка букетов, фильтры (цена, повод, цвет), сортировка, поиск, счётчик |
+| Букет | `/ru/catalog/koktem` | Галерея, цена, состав, размер, количество, «В корзину», похожие букеты |
+| Корзина | `/ru/cart` | Список, +/−, удаление, итог, прогресс до бесплатной доставки |
+| Оформление | `/ru/checkout` | Получатель, доставка/самовывоз, адрес, календарь, интервал, открытка, упаковка, оплата |
+| Спасибо | `/ru/checkout/success?order=…` | Номер и детали заказа, автопереход в WhatsApp с текстом заказа |
+| О нас, Контакты, Доставка и оплата | `/about`, `/contacts`, `/delivery` | Информационные страницы, карта, FAQ, форма обратной связи (через WhatsApp) |
+| Документы | `/privacy`, `/returns`, `/terms` | Шаблоны юридических текстов |
+
+**Для владельца** — админка `/admin`: заказы и статусы, букеты (добавление/редактирование/фото), недоступные даты, статистика.
+
+**Как заказ попадает к владельцу:**
+1. Покупатель оформляет заказ → он сохраняется в базе (видно в админке).
+2. На странице «Спасибо» открывается WhatsApp магазина с готовым текстом заказа — покупатель нажимает «Отправить».
+3. Email-уведомлений нет (сознательно отложено).
+
+---
+
+## 2. Технологии
+
+| Что | Зачем |
+|---|---|
+| **Next.js 16** (App Router, TypeScript) | Фреймворк: страницы, серверный рендеринг, API |
+| **Tailwind CSS 4** | Стили прямо в разметке (классы вида `px-4 text-rose`) |
+| **next-intl** | Два языка: адреса `/ru/...` и `/kk/...`, переводы |
+| **Supabase** | База данных PostgreSQL, хранилище фото, вход в админку |
+| **lucide-react** | Иконки |
+| **Vercel** | Хостинг, HTTPS, автодеплой из GitHub |
+
+> ⚠️ **Next.js 16 отличается от старых версий.** Например, `middleware.ts` теперь называется `proxy.ts`. Документация к установленной версии лежит в `node_modules/next/dist/docs/` — сверяйтесь с ней, а не со старыми статьями.
+
+---
+
+## 3. Быстрый старт (локально)
+
+**Нужно:** Node.js 20+ (проверено на 22), npm, доступ к проекту Supabase.
 
 ```bash
+# 1. Установить зависимости
+npm install
+
+# 2. Создать файл с ключами (см. раздел 4) и вписать свои значения
+cp .env.example .env.local
+
+# 3. Запустить сайт в режиме разработки
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Откройте http://localhost:3000 — сайт перенаправит на `/ru`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Команды**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Команда | Что делает |
+|---|---|
+| `npm run dev` | Режим разработки с автообновлением |
+| `npm run build` | Production-сборка (то же, что делает Vercel) |
+| `npm run start` | Запуск собранной версии (после `build`) |
+| `npm run lint` | Проверка кода линтером |
+| `npx tsc --noEmit` | Проверка типов TypeScript |
 
-## Learn More
+> Если `npm install` падает с ошибкой `EACCES` про `~/.npm` — в кеше npm есть файлы root. Исправить раз и навсегда: `sudo chown -R $(id -u):$(id -g) ~/.npm`.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 4. Переменные окружения
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Локально — в файле `.env.local` (в git **не попадает**). На Vercel — в Settings → Environment Variables.
 
-## Deploy on Vercel
+| Переменная | Обязательна | Пример | Описание |
+|---|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | да | `https://xxxx.supabase.co` | Адрес проекта Supabase (Project Settings → API) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | да | `eyJ…` | Публичный anon-ключ Supabase |
+| `NEXT_PUBLIC_SITE_URL` | да | `https://flower-flax-mu.vercel.app` | Адрес сайта — для canonical, sitemap, Open Graph |
+| `NEXT_PUBLIC_GA_ID` | нет | `G-XXXXXXX` | Google Analytics. Пусто — ничего не грузится |
+| `NEXT_PUBLIC_YM_ID` | нет | `12345678` | Яндекс.Метрика. Пусто — ничего не грузится |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Почему ключи с префиксом `NEXT_PUBLIC_` — это нормально.** Anon-ключ Supabase специально создан для браузера: данные защищены правилами RLS в базе (см. раздел 7). Секретный ключ `service_role` проекту **не нужен** — никуда его не вставляйте.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`NEXT_PUBLIC_SITE_URL` прощает опечатки (лишние `;`, пробелы, отсутствие `https://`) — см. `src/lib/seo.ts`.
+
+---
+
+## 5. Структура проекта
+
+```
+flower/
+├── src/
+│   ├── app/                        # Страницы (App Router: папка = адрес)
+│   │   ├── [locale]/               # Все публичные страницы под /ru и /kk
+│   │   │   ├── layout.tsx          # Общий каркас: шрифты, шапка, подвал, метаданные
+│   │   │   ├── page.tsx            # Главная
+│   │   │   ├── catalog/page.tsx    # Каталог
+│   │   │   ├── catalog/[slug]/     # Страница букета
+│   │   │   ├── cart/               # Корзина
+│   │   │   ├── checkout/           # Оформление + actions.ts (отправка заказа) + success/
+│   │   │   ├── about|contacts|delivery|privacy|returns|terms/
+│   │   │   ├── not-found.tsx       # Страница 404
+│   │   │   └── [...rest]/          # Ловит неизвестные адреса → 404
+│   │   ├── admin/                  # Админка (только русский, вне /ru /kk)
+│   │   │   ├── layout.tsx          # Отдельный корневой каркас админки
+│   │   │   ├── login/              # Вход
+│   │   │   ├── (panel)/            # Защищённые страницы (группа без влияния на адрес)
+│   │   │   └── actions.ts          # Серверные действия: статусы, букеты, даты
+│   │   ├── api/cart/route.ts       # API: свежие цены/названия для корзины
+│   │   ├── sitemap.ts, robots.ts, manifest.ts, icon.svg, apple-icon.tsx
+│   │   └── globals.css             # Tailwind + цвета/шрифты дизайн-системы
+│   ├── components/                 # React-компоненты по разделам
+│   │   ├── layout/                 # Header, Footer, LanguageSwitcher
+│   │   ├── ui/                     # Button, Chip, ProductCard
+│   │   ├── catalog/                # Фильтры, тулбар, слайдер цены
+│   │   ├── product/                # Галерея, «В корзину»
+│   │   ├── cart/                   # Корзина, значок, уведомление
+│   │   ├── checkout/               # Форма заказа, календарь, переход в WhatsApp
+│   │   ├── home/                   # Слайдер главной
+│   │   └── admin/                  # Компоненты админки
+│   ├── content/pages.ts            # Тексты страниц О нас / Доставка / Контакты / документы (RU+KK)
+│   ├── messages/ru.json, kk.json   # Переводы интерфейса
+│   ├── i18n/                       # Настройки языков next-intl
+│   ├── lib/
+│   │   ├── site.ts                 # ⭐ Данные магазина: телефон, WhatsApp, цены доставки
+│   │   ├── data.ts                 # Все чтения из базы для публичного сайта
+│   │   ├── cart-store.ts           # Корзина в localStorage
+│   │   ├── supabase/client.ts      # Клиент Supabase для браузера
+│   │   ├── supabase/server.ts      # Клиент для сервера + проверка админа
+│   │   ├── seo.ts                  # Адрес сайта, canonical/hreflang
+│   │   ├── fonts.ts, format.ts, nav.ts, toast.ts, admin.ts
+│   └── proxy.ts                    # Перехват запросов: языки + сессия админки
+├── supabase/
+│   ├── migrations/                 # SQL-схема базы (применяется по порядку)
+│   ├── seed.sql                    # Демо-данные (генерируется скриптом)
+│   └── config.toml
+├── scripts/gen_seed.py             # Генератор seed.sql (20 букетов, поводы, цвета)
+├── design/design-system.html       # Превью палитры и компонентов
+├── vercel.json                     # Регион серверных функций: Франкфурт
+└── .env.example                    # Шаблон переменных окружения
+```
+
+---
+
+## 6. Как устроены основные части
+
+### Серверные и клиентские компоненты
+По умолчанию компоненты **серверные** — выполняются на сервере, могут читать базу, не попадают в браузер.
+Файлы с `"use client"` в первой строке — **клиентские**: работают в браузере (кнопки, формы, корзина).
+
+### Чтение данных
+Все запросы публичного сайта к базе собраны в `src/lib/data.ts`:
+`getBouquets` (с фильтрами), `getBouquet`, `getSimilar`, `getPopular`, `getOccasions`, `getColors`, `getPriceRange`, `getBlockedDates`, `getOrderSummary` и др.
+База хранит поля на двух языках (`name_ru`, `name_kk`) — функции сами отдают нужный по текущему языку.
+
+### Кеширование страниц
+| Страница | Как рендерится |
+|---|---|
+| Главная, страницы букетов | Собираются заранее, обновляются раз в 5 минут (`revalidate = 300`) |
+| О нас, Доставка, документы | Статические |
+| Каталог | На каждый запрос (зависит от фильтров в адресе) |
+| Оформление | На каждый запрос (календарь зависит от сегодняшней даты) |
+
+После сохранения в админке кеш сбрасывается сразу (`revalidatePath` в `src/app/admin/actions.ts`).
+
+### Каталог и фильтры
+Фильтры хранятся в адресе: `/ru/catalog?occasion=love&color=red&min=10000&sort=cheap`.
+Хук `useCatalogParams` меняет адрес → сервер заново рендерит список. Поиск ищет по названию и короткому описанию.
+
+### Корзина
+- В `localStorage` (ключ `akgul-cart`) хранятся **только id букета и количество**.
+- Названия, фото и цены каждый раз берутся из базы через `/api/cart` — цены не устаревают и их нельзя подменить.
+- Если букет удалён/скрыт — он тихо исчезает из корзины.
+
+### Оформление заказа — почему цены нельзя подделать
+1. Форма (`CheckoutForm.tsx`) проверяет поля в браузере.
+2. Серверное действие `placeOrder` (`checkout/actions.ts`) вызывает функцию базы **`create_order()`**.
+3. `create_order()` сама берёт цены из каталога, считает упаковку и доставку, проверяет дату (не раньше завтра, не в недоступный день, не дальше 60 дней), интервал, согласие — и только потом сохраняет.
+4. Браузер отправляет лишь id и количество. Прямая запись в таблицу заказов запрещена.
+
+### Переход в WhatsApp
+Страница «Спасибо» собирает текст заказа и открывает `wa.me/<номер>?text=…` через 4 секунды (можно отменить). Номер — `whatsappPhone` в `src/lib/site.ts`.
+
+---
+
+## 7. База данных (Supabase)
+
+Проект: **«flowers database»**, регион **eu-central-1 (Франкфурт)**.
+
+### Таблицы
+| Таблица | Что хранит |
+|---|---|
+| `bouquets` | Букеты: тексты RU/KK, цена, старая цена, размер, фото (`images[]`), популярность, рейтинг, `is_active` |
+| `occasions` | Поводы (день рождения, свадьба…) RU/KK |
+| `colors` | Цвета RU/KK + hex |
+| `bouquet_occasions`, `bouquet_colors` | Связи букет ↔ повод/цвет |
+| `orders` | Заказы: контакты, получатель, доставка, открытка, упаковка, оплата, суммы, статус |
+| `order_items` | Позиции заказа (название и цена фиксируются на момент заказа) |
+| `blocked_dates` | Даты, недоступные для доставки |
+
+Хранилище фото: bucket **`bouquets`** (публичное чтение, запись только админ).
+
+### Функции в базе
+- `create_order(payload)` — создание заказа с серверным расчётом цен.
+- `get_order_summary(order_id)` — данные для страницы «Спасибо» (uuid заказа служит ключом доступа, 30 дней).
+- `is_admin()` — проверяет роль `admin` в сессии.
+
+### Права доступа (RLS)
+| Кто | Что может |
+|---|---|
+| Посетитель | Читать активные букеты, поводы, цвета, даты. Создать заказ — только через `create_order()` |
+| Вошедший пользователь без роли | То же, что посетитель |
+| Админ (`app_metadata.role = "admin"`) | Всё: заказы, букеты, даты, загрузка фото |
+
+> ⚠️ **Цены доставки и упаковки записаны в двух местах:** в `src/lib/site.ts` (для отображения) и в функции `create_order()` в миграции `…_create_order.sql` (для расчёта). Меняя цены — меняйте в обоих (см. раздел 13).
+
+### Работа с базой через CLI
+Нужен [Supabase CLI](https://supabase.com/docs/guides/cli) и привязка папки к проекту:
+```bash
+supabase login
+supabase link --project-ref <REF>      # REF — часть адреса между https:// и .supabase.co
+```
+
+| Задача | Команда |
+|---|---|
+| Создать новую миграцию | `supabase migration new имя` → отредактировать файл в `supabase/migrations/` |
+| Применить миграции к базе | `supabase db push` |
+| Применить и залить демо-данные (в пустую базу!) | `supabase db push --include-seed` |
+| Выполнить SQL | `supabase db query --linked "select count(*) from bouquets"` |
+| Выполнить SQL-файл | `supabase db query --linked -f файл.sql` |
+
+### Демо-данные
+`supabase/seed.sql` генерируется скриптом — правьте **скрипт**, а не SQL:
+```bash
+python3 scripts/gen_seed.py    # пересоздаёт supabase/seed.sql
+```
+Фото букетов сейчас — ссылки на Unsplash. Настоящие фото удобнее загружать через админку.
+
+---
+
+## 8. Админ-панель
+
+**Адрес:** `/admin` → вход по email и паролю.
+
+| Раздел | Возможности |
+|---|---|
+| Обзор | Выручка и заказы за сегодня / 7 / 30 дней, средний чек, график за 14 дней, топ-5 букетов |
+| Заказы | Фильтр по статусу, карточка заказа со всеми полями, звонок/WhatsApp в один клик, смена статуса |
+| Букеты | Поиск, добавление, редактирование RU/KK, загрузка и порядок фото, поводы/цвета, скрыть/показать, удаление |
+| Недоступные даты | Добавить/убрать дату с причиной |
+
+Статусы заказа: **В списке** (новый) → **Продано** или **Отменён**. В списке заказов у каждого нового заказа есть кнопки «Продано» и «Отменить»; у остальных — кнопка «Вернуть в список». Выручка и графики считаются только по проданным.
+
+### Как добавить ещё одного админа
+1. Supabase → Authentication → Users → **Add user** (отметьте **Auto Confirm User**).
+2. Выдайте роль (подставьте email):
+   ```bash
+   supabase db query --linked "update auth.users set raw_app_meta_data = raw_app_meta_data || '{\"role\":\"admin\"}'::jsonb where email = 'new@example.com'"
+   ```
+3. Пользователь входит на `/admin/login`. Если он был залогинен до выдачи роли — пусть выйдет и войдёт заново.
+
+Регистрацию посторонних стоит держать выключенной: Authentication → Sign In / Providers → **Allow new users to sign up** = off.
+
+### Как это защищено
+- `proxy.ts` обновляет сессию для `/admin/*`.
+- `requireAdmin()` (`src/lib/supabase/server.ts`) на каждой странице и в каждом действии — без роли редирект на вход.
+- Даже если обойти интерфейс, база (RLS) не отдаст и не примет данные без роли `admin`.
+
+---
+
+## 9. Два языка (i18n)
+
+- Языки: `ru` (по умолчанию) и `kk`. Настройка — `src/i18n/routing.ts`.
+- Адреса: `/ru/...`, `/kk/...`. Корень `/` перенаправляет на `/ru`.
+- **Тексты интерфейса** (кнопки, подписи, ошибки) — `src/messages/ru.json` и `kk.json`. Ключи в обоих файлах должны совпадать.
+- **Длинные тексты страниц** (О нас, Доставка, документы, контакты) — `src/content/pages.ts`.
+- **Данные из базы** — поля `*_ru` / `*_kk` (редактируются в админке).
+- В компонентах: `useTranslations("раздел")` (клиент/сервер) или `await getTranslations("раздел")` (async-сервер).
+- Склонения: ICU-формат, например `"{count, plural, one {# букет} few {# букета} other {# букетов}}"`.
+- Ссылки внутри сайта — через `Link` из `@/i18n/navigation` (сам добавит `/ru` или `/kk`). В админке — обычный `next/link`.
+
+---
+
+## 10. Дизайн-система
+
+Превью: откройте `design/design-system.html` в браузере.
+
+**Цвета** (заданы в `src/app/globals.css`, используются как классы Tailwind: `bg-blush`, `text-rose`…)
+
+| Имя | Hex | Где |
+|---|---|---|
+| `cream` | `#FBF7F4` | Фон |
+| `blush` / `blush-dark` | `#E9BABC` / `#D99A9D` | Акцент, чипы, «+» |
+| `rose` | `#B5646B` | Ховер, иконки |
+| `sage` | `#8A9A7B` | Прогресс-бары, «успех» |
+| `ink` | `#2B2422` | Текст, главные кнопки, подвал |
+| `muted` | `#6B5F5B` | Второстепенный текст |
+| `line` | `#EDE3DE` | Рамки |
+| `whatsapp` / `telegram` | `#0E7A5F` / `#1A6FA0` | Затемнены для читаемости белого текста |
+
+**Шрифты:** Cormorant (заголовки, `font-serif`) и Montserrat (текст, `font-sans`) — оба поддерживают казахские буквы. Подключены в `src/lib/fonts.ts`.
+
+**Компоненты:** `Button` (варианты `primary`, `secondary`, `outline`), `Chip`, `ProductCard` в `src/components/ui/`.
+
+---
+
+## 11. SEO и аналитика
+
+- `title`, `description`, Open Graph — в `generateMetadata` каждой страницы.
+- `canonical` + `hreflang` (ru, kk, x-default) — через `alternates()` из `src/lib/seo.ts`.
+- Микроразметка: `Florist` на главной, `Product` на странице букета, `FAQPage` на «Доставке».
+- `sitemap.xml` (страницы + все букеты, обновление раз в час), `robots.txt` (закрыты корзина, оформление, API, админка).
+- Иконки: `src/app/icon.svg`, `apple-icon.tsx`, `manifest.ts`.
+- **Аналитика:** впишите `NEXT_PUBLIC_GA_ID` и/или `NEXT_PUBLIC_YM_ID` → передеплой. Код — `src/components/Analytics.tsx`.
+
+**Lighthouse (живой сайт, мобильный):** производительность 90–92, доступность 100, практики 100, SEO 100.
+
+---
+
+## 12. Деплой (Vercel)
+
+**Автоматический:** каждый `git push` в ветку `main` → Vercel собирает и публикует сайт (1–2 минуты). Другие ветки получают preview-адрес.
+
+**Настройки проекта в Vercel**
+- Environment Variables — три обязательные переменные из раздела 4, тип **Config**.
+- Регион функций — `fra1` (закреплён в `vercel.json`, рядом с базой).
+
+**Свой домен:** Vercel → Settings → Domains → Add → прописать у регистратора DNS-записи, которые покажет Vercel. После — поменять `NEXT_PUBLIC_SITE_URL` на новый домен и сделать Redeploy.
+
+**Перед push полезно проверить локально:**
+```bash
+npx tsc --noEmit && npm run lint && npm run build
+```
+
+---
+
+## 13. Частые задачи — «как сделать…»
+
+### Поменять контакты магазина (телефон, WhatsApp, Instagram…)
+`src/lib/site.ts`. Номер для заказов — `whatsappPhone` (только цифры, с 7). Адрес магазина — `footer.address` в `src/messages/*.json` и `streetAddress` в микроразметке `src/app/[locale]/page.tsx`.
+
+### Поменять цены доставки / упаковки
+1. `src/lib/site.ts` — `deliveryPrice`, `freeDeliveryFrom`, `giftPackagingPrice`, `ribbonPrice`.
+2. Новая миграция с обновлённой функцией `create_order()` (скопируйте её из `…_create_order.sql`, поменяйте константы `c_*`):
+   ```bash
+   supabase migration new update_prices
+   supabase db push
+   ```
+3. Тексты в `src/messages/*.json` и `src/content/pages.ts` (раздел «Доставка»), если там упоминаются суммы.
+
+### Поменять интервалы доставки
+`slots` в `src/lib/site.ts` **и** `c_slots` в `create_order()` (новой миграцией).
+
+### Добавить / изменить букет
+Через админку `/admin/bouquets`. Адрес страницы (slug) — латиница, цифры, дефис.
+
+### Добавить повод или цвет
+SQL (пока нет в админке):
+```bash
+supabase db query --linked "insert into occasions (slug, name_ru, name_kk, sort) values ('graduation', 'Выпускной', 'Түлектер кеші', 8)"
+```
+
+### Поменять тексты
+- Кнопки и подписи — `src/messages/ru.json` / `kk.json`.
+- О нас, Доставка, Контакты, документы — `src/content/pages.ts`.
+- Отзывы и тексты главной — раздел `home` в `src/messages/*.json`.
+
+### Поменять фото на главной / «О нас»
+ID фото Unsplash — константы `HERO` и `ABOUT` в `src/app/[locale]/page.tsx`, `PHOTOS` в `about/page.tsx`. Для своих фото: загрузите в Supabase Storage или положите в `public/` и укажите путь.
+
+### Добавить новую страницу
+1. Создайте `src/app/[locale]/имя/page.tsx` (за образец возьмите `about/page.tsx`).
+2. Добавьте `generateMetadata` с `alternates(locale, "/имя")`.
+3. При необходимости — пункт в `src/lib/nav.ts` и перевод в `nav` обоих JSON.
+4. Добавьте путь в `STATIC` в `src/app/sitemap.ts`.
+
+### Удалить тестовые заказы
+```bash
+supabase db query --linked "delete from orders where customer_email = 'test@example.com'"
+# сбросить нумерацию (если заказов больше нет):
+supabase db query --linked "select setval(pg_get_serial_sequence('public.orders','number'), coalesce((select max(number) from orders), 0) + 1, false)"
+```
+
+---
+
+## 14. Решение проблем
+
+| Симптом | Причина и решение |
+|---|---|
+| Сборка падает: `Invalid URL` | Неверный `NEXT_PUBLIC_SITE_URL`. Должно быть `https://адрес` без кавычек и `;` |
+| Сборка на Vercel падает на запросах к Supabase | Не заданы переменные окружения в Vercel — добавьте и сделайте Redeploy |
+| Сайт медленный, в заголовке `x-vercel-id` видно `iad1` | Функции не во Франкфурте — проверьте `vercel.json` (`"regions": ["fra1"]`) |
+| `Invalid vercel.json` | В JSON ключи и строки обязательно в двойных кавычках |
+| В админку не пускает «нет доступа» | У пользователя нет роли `admin` (раздел 8) или нужен повторный вход |
+| Изменения из админки не видны на сайте | Обновите страницу; кеш сбрасывается при сохранении. Если нет — проверьте, что букет «Показывать на сайте» |
+| Заказ не оформляется: «дата недоступна» | Дата в `blocked_dates`, сегодня/раньше или дальше 60 дней |
+| `npm install` → `EACCES` | `sudo chown -R $(id -u):$(id -g) ~/.npm` |
+| После `npm run build` dev-сервер сломался | Сборка перезаписала `.next` — перезапустите `npm run dev` |
+| Иконки брендов (Instagram) из lucide не импортируются | В новых версиях lucide бренд-иконок нет — используйте нейтральные |
+
+---
+
+## 15. Что ещё не сделано
+
+- **Email-уведомления** (Resend) — отложено; заказы приходят через WhatsApp и видны в админке.
+- **Онлайн-оплата** (Kaspi / CloudPayments) — в форме заглушка «скоро».
+- **Пригородные зоны доставки** — описаны на странице «Доставка», но в оформлении всегда городской тариф.
+- **Опциональное из чек-листа:** личный кабинет, избранное, подписка, рекомендации, чат, отзывы покупателей, купоны, реферальная программа.
+- **Юридические тексты** — шаблоны; перед реальным запуском согласовать с юристом.
+- **Вымышленные данные** — заменить контакты, номер WhatsApp, тексты, отзывы, фото.

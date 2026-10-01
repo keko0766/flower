@@ -57,12 +57,12 @@ export default async function Dashboard() {
     .from("orders")
     .select("status, total, created_at, order_items(name, quantity)")
     .gte("created_at", daysAgoIso(30));
-  const orders = ((data ?? []) as Row[]).filter(
-    (o) => o.status !== "cancelled",
+  const all = (data ?? []) as Row[];
+  // Revenue and charts count only completed sales.
+  const { periods, topList, days, maxN } = computeStats(
+    all.filter((o) => o.status === "sold"),
   );
-
-  const { periods, topList, days, maxN } = computeStats(orders);
-  const newCount = orders.filter((o) => o.status === "new").length;
+  const newCount = all.filter((o) => o.status === "new").length;
 
   return (
     <div className="space-y-6">
@@ -73,7 +73,7 @@ export default async function Dashboard() {
             href="/admin/orders?status=new"
             className={`rounded-full px-4 py-2 text-sm ${STATUS.new.cls}`}
           >
-            Новых заказов: {newCount} →
+            В списке: {newCount} →
           </Link>
         )}
       </div>
@@ -88,7 +88,7 @@ export default async function Dashboard() {
               {formatPrice(sum(p.list))}
             </p>
             <p className="mt-1 text-sm text-muted">
-              {p.list.length} заказ(ов) · средний чек{" "}
+              {p.list.length} продаж(и) · средний чек{" "}
               {formatPrice(
                 p.list.length ? Math.round(sum(p.list) / p.list.length) : 0,
               )}
@@ -99,7 +99,7 @@ export default async function Dashboard() {
 
       <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
         <section className="rounded-[20px] bg-white p-5">
-          <h2 className="font-serif text-2xl">Заказы за 14 дней</h2>
+          <h2 className="font-serif text-2xl">Продажи за 14 дней</h2>
           <div
             className="mt-6 flex h-40 items-end gap-1.5"
             role="img"
@@ -138,7 +138,7 @@ export default async function Dashboard() {
             </ol>
           ) : (
             <p className="mt-4 text-sm text-muted">
-              Пока нет заказов за 30 дней.
+              Пока нет продаж за 30 дней.
             </p>
           )}
         </section>

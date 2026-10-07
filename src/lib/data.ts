@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import type { Locale } from "@/i18n/routing";
+import type { Settings } from "@/lib/site";
 
 // Public reads only; RLS hides inactive bouquets. Admin writes use a session client.
 const supabase = createClient(
@@ -188,6 +189,24 @@ export async function getBlockedDates() {
   const { data, error } = await supabase.from("blocked_dates").select("day");
   if (error) throw error;
   return data.map((r) => r.day as string);
+}
+
+export async function getSettings(): Promise<Settings> {
+  const { data, error } = await supabase.from("shop_settings").select("*").eq("id", 1).single();
+  if (error) throw error;
+  return {
+    phone: data.phone,
+    whatsappPhone: data.whatsapp_phone,
+    telegram: data.telegram,
+    instagram: data.instagram,
+    email: data.email,
+    hours: data.hours,
+    deliveryPrice: data.delivery_price,
+    freeDeliveryFrom: data.free_delivery_from,
+    giftPackagingPrice: data.gift_packaging_price,
+    ribbonPrice: data.ribbon_price,
+    slots: data.slots,
+  };
 }
 
 export type OrderSummary = {

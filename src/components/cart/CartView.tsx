@@ -7,13 +7,13 @@ import Button from "@/components/ui/Button";
 import { Link } from "@/i18n/navigation";
 import { MAX_QTY, cart } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
-import { site } from "@/lib/site";
+import type { Settings } from "@/lib/site";
 import { useCartItems } from "./useCartItems";
 
-export default function CartView() {
+export default function CartView({ settings }: { settings: Settings }) {
   const t = useTranslations("cart");
   const tp = useTranslations("product");
-  const { items, loading, isEmpty, subtotal, delivery, total, toFree } = useCartItems();
+  const { items, loading, isEmpty, subtotal, delivery, total, toFree } = useCartItems(settings);
 
   if (isEmpty) {
     return (
@@ -32,7 +32,7 @@ export default function CartView() {
     return <p className="mt-10 text-muted">{t("loading")}</p>;
   }
 
-  const progress = Math.min(100, (subtotal / site.freeDeliveryFrom) * 100);
+  const progress = Math.min(100, (subtotal / settings.freeDeliveryFrom) * 100);
 
   return (
     <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">

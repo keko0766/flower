@@ -8,8 +8,8 @@ import Button from "@/components/ui/Button";
 import ProductCard from "@/components/ui/ProductCard";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
-import { getOccasions, getPopular } from "@/lib/data";
-import { site } from "@/lib/site";
+import { getOccasions, getPopular, getSettings } from "@/lib/data";
+import { phoneHref, site, whatsappUrl } from "@/lib/site";
 
 const img = (id: string, w = 1600) =>
   `https://images.unsplash.com/photo-${id}?w=${w}&q=80&auto=format&fit=crop`;
@@ -43,11 +43,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function HomePage({ params }: Props) {
   const { locale } = (await params) as { locale: Locale };
   setRequestLocale(locale);
-  const [t, tFooter, popular, occasions] = await Promise.all([
+  const [t, tFooter, popular, occasions, s] = await Promise.all([
     getTranslations("home"),
     getTranslations("footer"),
     getPopular(locale),
     getOccasions(locale),
+    getSettings(),
   ]);
 
   const slides = (t.raw("slides") as { title: string; text: string }[]).map(
@@ -63,20 +64,21 @@ export default async function HomePage({ params }: Props) {
     date: string;
   }[];
 
+  const hours = s.hours.match(/\d{1,2}:\d{2}/g)?.slice(0, 2);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Florist",
     name: site.name,
     image: img(HERO[0], 1200),
-    telephone: site.phone,
-    email: site.email,
+    telephone: s.phone,
+    ...(s.email && { email: s.email }),
     address: {
       "@type": "PostalAddress",
       streetAddress: "пр. Абая, 52",
       addressLocality: "Алматы",
       addressCountry: "KZ",
     },
-    openingHoursSpecification: {
+    openingHoursSpecification: hours && {
       "@type": "OpeningHoursSpecification",
       dayOfWeek: [
         "Monday",
@@ -87,10 +89,10 @@ export default async function HomePage({ params }: Props) {
         "Saturday",
         "Sunday",
       ],
-      opens: "08:00",
-      closes: "22:00",
+      opens: hours?.[0],
+      closes: hours?.[1],
     },
-    sameAs: [site.instagram, site.telegram],
+    sameAs: [s.instagram, s.telegram].filter(Boolean),
     priceRange: "₸₸",
   };
 
@@ -234,29 +236,33 @@ export default async function HomePage({ params }: Props) {
             </h2>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
-                href={site.whatsapp}
+                href={whatsappUrl(s)}
                 target="_blank"
                 rel="noopener"
                 className="rounded-full bg-whatsapp px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
               >
                 WhatsApp
               </a>
-              <a
-                href={site.telegram}
-                target="_blank"
-                rel="noopener"
-                className="rounded-full bg-telegram px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
-              >
-                Telegram
-              </a>
-              <a
-                href={site.instagram}
-                target="_blank"
-                rel="noopener"
-                className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-rose"
-              >
-                Instagram
-              </a>
+              {s.telegram && (
+                <a
+                  href={s.telegram}
+                  target="_blank"
+                  rel="noopener"
+                  className="rounded-full bg-telegram px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                >
+                  Telegram
+                </a>
+              )}
+              {s.instagram && (
+                <a
+                  href={s.instagram}
+                  target="_blank"
+                  rel="noopener"
+                  className="rounded-full bg-ink px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-rose"
+                >
+                  Instagram
+                </a>
+              )}
             </div>
           </div>
           <div className="space-y-5 text-sm">
@@ -264,11 +270,11 @@ export default async function HomePage({ params }: Props) {
               {tFooter("address")}
             </Info>
             <Info icon={<Clock size={18} />} label={t("hoursLabel")}>
-              {t("hoursValue", { hours: site.hours })}
+              {t("hoursValue", { hours: s.hours })}
             </Info>
             <Info icon={<Phone size={18} />} label={t("phoneLabel")}>
-              <a href={site.phoneHref} className="hover:text-rose">
-                {site.phone}
+              <a href={phoneHref(s)} className="hover:text-rose">
+                {s.phone}
               </a>
             </Info>
           </div>

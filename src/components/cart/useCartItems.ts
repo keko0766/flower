@@ -4,12 +4,12 @@ import { useLocale } from "next-intl";
 import { useEffect, useState } from "react";
 import type { CartBouquet } from "@/lib/data";
 import { cart, useCart } from "@/lib/cart-store";
-import { site } from "@/lib/site";
+import type { Settings } from "@/lib/site";
 
 export type CartItem = CartBouquet & { qty: number };
 
 // Joins stored cart lines with fresh bouquet data and computes totals.
-export function useCartItems() {
+export function useCartItems(settings: Settings) {
   const locale = useLocale();
   const lines = useCart();
   const [data, setData] = useState<{ key: string; items: CartBouquet[] } | null>(null);
@@ -41,7 +41,7 @@ export function useCartItems() {
   });
 
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
-  const delivery = subtotal >= site.freeDeliveryFrom ? 0 : site.deliveryPrice;
+  const delivery = subtotal >= settings.freeDeliveryFrom ? 0 : settings.deliveryPrice;
 
   return {
     items,
@@ -50,6 +50,6 @@ export function useCartItems() {
     subtotal,
     delivery,
     total: subtotal + delivery,
-    toFree: Math.max(0, site.freeDeliveryFrom - subtotal),
+    toFree: Math.max(0, settings.freeDeliveryFrom - subtotal),
   };
 }

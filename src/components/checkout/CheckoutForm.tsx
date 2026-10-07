@@ -10,10 +10,10 @@ import Button from "@/components/ui/Button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cart } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/format";
-import { site } from "@/lib/site";
+import type { Settings } from "@/lib/site";
 import DatePicker from "./DatePicker";
 
-type Props = { minDate: string; maxDate: string; blocked: string[] };
+type Props = { minDate: string; maxDate: string; blocked: string[]; settings: Settings };
 
 const initial = {
   name: "",
@@ -28,7 +28,7 @@ const initial = {
   floor: "",
   entranceCode: "",
   date: "",
-  slot: site.slots[1],
+  slot: "",
   card: false,
   cardText: "",
   cardFrom: "",
@@ -58,13 +58,13 @@ function formatPhone(raw: string) {
 }
 const phoneOk = (v: string) => v.replace(/\D/g, "").length === 11;
 
-export default function CheckoutForm({ minDate, maxDate, blocked }: Props) {
+export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Props) {
   const t = useTranslations("checkout");
   const tFooter = useTranslations("footer");
   const locale = useLocale();
   const router = useRouter();
-  const { items, isEmpty, loading, subtotal } = useCartItems();
-  const [f, setF] = useState<Form>(initial);
+  const { items, isEmpty, loading, subtotal } = useCartItems(settings);
+  const [f, setF] = useState<Form>({ ...initial, slot: settings.slots[Math.min(1, settings.slots.length - 1)] });
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [serverError, setServerError] = useState("");
   const [pending, startTransition] = useTransition();
@@ -74,12 +74,12 @@ export default function CheckoutForm({ minDate, maxDate, blocked }: Props) {
     if (errors[k]) setErrors((e) => ({ ...e, [k]: undefined }));
   };
 
-  if (isEmpty) return <CartView />;
+  if (isEmpty) return <CartView settings={settings} />;
 
   const packagingPrice =
-    (f.packaging === "gift" ? site.giftPackagingPrice : 0) + (f.ribbon ? site.ribbonPrice : 0);
+    (f.packaging === "gift" ? settings.giftPackagingPrice : 0) + (f.ribbon ? settings.ribbonPrice : 0);
   const deliveryPrice =
-    f.method === "pickup" || subtotal >= site.freeDeliveryFrom ? 0 : site.deliveryPrice;
+    f.method === "pickup" || subtotal >= settings.freeDeliveryFrom ? 0 : settings.deliveryPrice;
   const total = subtotal + packagingPrice + deliveryPrice;
 
   function validate() {
@@ -185,7 +185,7 @@ export default function CheckoutForm({ minDate, maxDate, blocked }: Props) {
         <Section title={t("method")}>
           <div className="grid gap-3 sm:grid-cols-2">
             <Radio checked={f.method === "delivery"} onChange={() => set("method", "delivery")} title={t("delivery")}
-              hint={t("deliveryHint", { price: formatPrice(site.deliveryPrice), free: formatPrice(site.freeDeliveryFrom) })} />
+              hint={t("deliveryHint", { price: formatPrice(settings.deliveryPrice), free: formatPrice(settings.freeDeliveryFrom) })} />
             <Radio checked={f.method === "pickup"} onChange={() => set("method", "pickup")} title={t("pickup")}
               hint={t("pickupHint", { address: tFooter("address") })} />
           </div>
@@ -210,7 +210,7 @@ export default function CheckoutForm({ minDate, maxDate, blocked }: Props) {
             </Field>
             <Field id="slot" label={t("slot")}>
               <div className="grid grid-cols-2 gap-2">
-                {site.slots.map((s) => (
+                {settings.slots.map((s) => (
                   <button key={s} type="button" onClick={() => set("slot", s)} aria-pressed={f.slot === s}
                     className={`rounded-xl border px-3 py-3 text-sm transition-colors ${f.slot === s ? "border-ink bg-ink text-white" : "border-line bg-white hover:border-blush"}`}>
                     {s.replace("-", "–")}
@@ -244,10 +244,10 @@ export default function CheckoutForm({ minDate, maxDate, blocked }: Props) {
             <Radio checked={f.packaging === "standard"} onChange={() => set("packaging", "standard")}
               title={t("standard")} hint={t("standardHint")} price={t("free")} />
             <Radio checked={f.packaging === "gift"} onChange={() => set("packaging", "gift")}
-              title={t("gift")} hint={t("giftHint")} price={`+${formatPrice(site.giftPackagingPrice)}`} />
+              title={t("gift")} hint={t("giftHint")} price={`+${formatPrice(settings.giftPackagingPrice)}`} />
           </div>
           <Check checked={f.ribbon} onChange={(v) => set("ribbon", v)}>
-            {t("ribbon")} <span className="text-muted">+{formatPrice(site.ribbonPrice)}</span>
+            {t("ribbon")} <span className="text-muted">+{formatPrice(settings.ribbonPrice)}</span>
           </Check>
         </Section>
 

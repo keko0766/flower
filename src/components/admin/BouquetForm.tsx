@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, ImagePlus, Trash2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, ImagePlus, Trash2, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { type ReactNode, useState, useTransition } from "react";
@@ -18,6 +18,10 @@ const empty: BouquetInput = {
 };
 
 const MAX_MB = 5;
+
+// Open the "Дополнительно" block when editing a bouquet that already has something in it.
+const hasExtras = (b: BouquetInput) =>
+  !!(b.old_price || b.height_cm || b.diameter_cm || b.short_ru || b.composition_ru || b.description_ru);
 
 export default function BouquetForm({ id, initial = empty, occasions, colors }: Props) {
   const [f, setF] = useState<BouquetInput>(initial);
@@ -88,7 +92,7 @@ export default function BouquetForm({ id, initial = empty, occasions, colors }: 
       <input
         type="number"
         min={0}
-        value={f[k] ?? ""}
+        value={f[k] || ""}
         onChange={(e) => set(k, (e.target.value === "" ? (k === "price" ? 0 : null) : Number(e.target.value)) as never)}
         className={cls}
       />
@@ -98,28 +102,15 @@ export default function BouquetForm({ id, initial = empty, occasions, colors }: 
   return (
     <form onSubmit={submit} className="mt-6 space-y-5 pb-24">
       <Box title="Основное">
-        <div className="grid gap-4 sm:grid-cols-2">
-          {text("name_ru", "Название (рус) *")}
-          {text("name_kk", "Название (қаз) *")}
-        </div>
-        <label className="block">
-          <span className="mb-1.5 block text-xs text-muted">Адрес страницы (латиница, цифры, дефис) *</span>
-          <div className="flex items-center rounded-xl border border-line bg-white pl-4 text-sm focus-within:border-blush-dark">
-            <span className="text-muted">/catalog/</span>
-            <input value={f.slug} onChange={(e) => set("slug", e.target.value)} className="w-full rounded-xl px-1 py-3 outline-none" placeholder="naprimer-alye-rozy" />
-          </div>
-        </label>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {text("short_ru", "Короткое описание (рус)")}
-          {text("short_kk", "Короткое описание (қаз)")}
-        </div>
+        {text("name_ru", "Название *")}
+        <div className="grid gap-4 sm:grid-cols-2">{num("price", "Цена, ₸ *")}</div>
         <label className="flex items-center gap-3 text-sm">
           <input type="checkbox" checked={f.is_active} onChange={(e) => set("is_active", e.target.checked)} className="size-4 accent-[var(--color-ink)]" />
           Показывать на сайте
         </label>
       </Box>
 
-      <Box title="Фото">
+      <Box title="Фото *">
         <div className="flex flex-wrap gap-3">
           {f.images.map((src, i) => (
             <div key={src} className="group relative size-28 overflow-hidden rounded-xl bg-blush">
@@ -141,34 +132,54 @@ export default function BouquetForm({ id, initial = empty, occasions, colors }: 
         <p className="text-xs text-muted">JPG/PNG/WebP до {MAX_MB} МБ. Первое фото — главное в каталоге.</p>
       </Box>
 
-      <Box title="Цена и размер">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {num("price", "Цена, ₸ *")}
-          {num("old_price", "Старая цена, ₸")}
-          <label className="block">
-            <span className="mb-1.5 block text-xs text-muted">Размер</span>
-            <select value={f.size} onChange={(e) => set("size", e.target.value as BouquetInput["size"])} className={cls}>
-              {["S", "M", "L", "XL"].map((s) => <option key={s}>{s}</option>)}
-            </select>
-          </label>
-          {num("height_cm", "Высота, см")}
-          {num("diameter_cm", "Диаметр, см")}
-        </div>
-      </Box>
-
-      <Box title="Состав и описание">
-        <div className="grid gap-4 sm:grid-cols-2">
-          {text("composition_ru", "Состав (рус)")}
-          {text("composition_kk", "Состав (қаз)")}
-          {text("description_ru", "Описание (рус)", true)}
-          {text("description_kk", "Описание (қаз)", true)}
-        </div>
-      </Box>
-
       <Box title="Поводы и цвета">
         <Chips options={occasions} selected={f.occasions} onToggle={(s) => toggle("occasions", s)} />
         <Chips options={colors} selected={f.colors} onToggle={(s) => toggle("colors", s)} />
+        <p className="text-xs text-muted">Помогают покупателям находить букет через фильтры в каталоге.</p>
       </Box>
+
+      <details open={hasExtras(initial)} className="group rounded-[20px] bg-white">
+        <summary className="flex cursor-pointer list-none items-center justify-between p-5 md:p-6 [&::-webkit-details-marker]:hidden">
+          <span>
+            <span className="font-serif text-2xl">Дополнительно</span>
+            <span className="mt-1 block text-xs text-muted">Описание, размер, старая цена, текст на казахском. Можно не заполнять.</span>
+          </span>
+          <ChevronDown size={20} className="shrink-0 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="space-y-5 border-t border-line p-5 md:p-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {num("old_price", "Старая цена, ₸")}
+            <label className="block">
+              <span className="mb-1.5 block text-xs text-muted">Размер</span>
+              <select value={f.size} onChange={(e) => set("size", e.target.value as BouquetInput["size"])} className={cls}>
+                {["S", "M", "L", "XL"].map((s) => <option key={s}>{s}</option>)}
+              </select>
+            </label>
+            {num("height_cm", "Высота, см")}
+            {num("diameter_cm", "Диаметр, см")}
+          </div>
+          {text("short_ru", "Короткое описание")}
+          {text("composition_ru", "Состав")}
+          {text("description_ru", "Подробное описание", true)}
+
+          <div className="space-y-4 rounded-xl bg-cream/60 p-4">
+            <p className="text-sm font-medium">Қазақша <span className="font-normal text-muted">— необязательно</span></p>
+            <p className="text-xs text-muted">Если оставить пустым, на казахской версии сайта покажется русский текст.</p>
+            {text("name_kk", "Название (қаз)")}
+            {text("short_kk", "Короткое описание (қаз)")}
+            {text("composition_kk", "Состав (қаз)")}
+            {text("description_kk", "Подробное описание (қаз)", true)}
+          </div>
+
+          <label className="block">
+            <span className="mb-1.5 block text-xs text-muted">Адрес страницы</span>
+            <div className="flex items-center rounded-xl border border-line bg-white pl-4 text-sm focus-within:border-blush-dark">
+              <span className="text-muted">/catalog/</span>
+              <input value={f.slug} onChange={(e) => set("slug", e.target.value)} className="w-full rounded-xl px-1 py-3 outline-none" placeholder="создастся автоматически из названия" />
+            </div>
+          </label>
+        </div>
+      </details>
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-white/95 backdrop-blur md:left-[220px]">
         <div className="flex max-w-4xl items-center gap-3 px-4 py-3 md:px-8">

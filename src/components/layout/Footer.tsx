@@ -1,10 +1,11 @@
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { site } from "@/lib/site";
+import { getSettings } from "@/lib/data";
+import { phoneHref, site, whatsappUrl } from "@/lib/site";
 import { navItems } from "@/lib/nav";
 
-export default function Footer() {
-  const t = useTranslations();
+export default async function Footer() {
+  const [t, s] = await Promise.all([getTranslations(), getSettings()]);
 
   return (
     <footer className="mt-20 bg-ink text-white/80">
@@ -13,9 +14,9 @@ export default function Footer() {
           <p className="font-serif text-3xl text-white">{site.name}</p>
           <p className="mt-3 max-w-xs text-sm">{t("footer.tagline")}</p>
           <div className="mt-5 flex gap-4 text-sm">
-            <a href={site.instagram} target="_blank" rel="noopener" className="hover:text-blush">Instagram</a>
-            <a href={site.whatsapp} target="_blank" rel="noopener" className="hover:text-blush">WhatsApp</a>
-            <a href={site.telegram} target="_blank" rel="noopener" className="hover:text-blush">Telegram</a>
+            {s.instagram && <a href={s.instagram} target="_blank" rel="noopener" className="hover:text-blush">Instagram</a>}
+            <a href={whatsappUrl(s)} target="_blank" rel="noopener" className="hover:text-blush">WhatsApp</a>
+            {s.telegram && <a href={s.telegram} target="_blank" rel="noopener" className="hover:text-blush">Telegram</a>}
           </div>
         </div>
 
@@ -44,10 +45,10 @@ export default function Footer() {
         <div>
           <p className="text-xs uppercase tracking-[0.12em] text-white/50">{t("footer.contactsTitle")}</p>
           <ul className="mt-4 space-y-2 text-sm">
-            <li><a href={site.phoneHref} className="hover:text-blush">{site.phone}</a></li>
-            <li><a href={`mailto:${site.email}`} className="hover:text-blush">{site.email}</a></li>
+            <li><a href={phoneHref(s)} className="hover:text-blush">{s.phone}</a></li>
+            {s.email && <li><a href={`mailto:${s.email}`} className="hover:text-blush">{s.email}</a></li>}
             <li>{t("footer.address")}</li>
-            <li>{t("footer.hours")} {site.hours}</li>
+            <li>{t("footer.hours")} {s.hours}</li>
           </ul>
         </div>
       </div>

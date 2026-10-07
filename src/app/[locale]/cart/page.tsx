@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CartView from "@/components/cart/CartView";
+import { getSettings } from "@/lib/data";
 
 export async function generateMetadata({
   params,
@@ -19,12 +20,12 @@ export default async function CartPage({
 }: PageProps<"/[locale]/cart">) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("cart");
+  const [t, settings] = await Promise.all([getTranslations("cart"), getSettings()]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
       <h1 className="font-serif text-4xl md:text-5xl">{t("title")}</h1>
-      <CartView />
+      <CartView settings={settings} />
     </div>
   );
 }

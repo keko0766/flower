@@ -5,7 +5,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import ContactForm from "@/components/ContactForm";
 import { getContent } from "@/content/pages";
-import { site } from "@/lib/site";
+import { getSettings } from "@/lib/data";
+import { phoneHref, whatsappUrl } from "@/lib/site";
 
 type Props = PageProps<"/[locale]/contacts">;
 
@@ -25,7 +26,7 @@ export default async function ContactsPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const c = getContent(locale).contacts;
-  const tFooter = await getTranslations("footer");
+  const [tFooter, s] = await Promise.all([getTranslations("footer"), getSettings()]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:py-16">
@@ -39,37 +40,43 @@ export default async function ContactsPage({ params }: Props) {
               <p className="text-sm text-muted">{c.addressHint}</p>
             </Item>
             <Item icon={<Phone size={18} />} label="Телефон">
-              <a href={site.phoneHref} className="hover:text-rose">
-                {site.phone}
+              <a href={phoneHref(s)} className="hover:text-rose">
+                {s.phone}
               </a>
             </Item>
-            <Item icon={<Mail size={18} />} label="Email">
-              <a href={`mailto:${site.email}`} className="hover:text-rose">
-                {site.email}
-              </a>
-            </Item>
+            {s.email && (
+              <Item icon={<Mail size={18} />} label="Email">
+                <a href={`mailto:${s.email}`} className="hover:text-rose">
+                  {s.email}
+                </a>
+              </Item>
+            )}
             <div className="flex flex-wrap gap-2 pt-1">
               <Social
-                href={site.whatsapp}
+                href={whatsappUrl(s)}
                 icon={<MessageCircle size={16} />}
                 className="bg-whatsapp text-white"
               >
                 WhatsApp
               </Social>
-              <Social
-                href={site.telegram}
-                icon={<Send size={16} />}
-                className="bg-telegram text-white"
-              >
-                Telegram
-              </Social>
-              <Social
-                href={site.instagram}
-                icon={<Camera size={16} />}
-                className="bg-ink text-white"
-              >
-                Instagram
-              </Social>
+              {s.telegram && (
+                <Social
+                  href={s.telegram}
+                  icon={<Send size={16} />}
+                  className="bg-telegram text-white"
+                >
+                  Telegram
+                </Social>
+              )}
+              {s.instagram && (
+                <Social
+                  href={s.instagram}
+                  icon={<Camera size={16} />}
+                  className="bg-ink text-white"
+                >
+                  Instagram
+                </Social>
+              )}
             </div>
           </div>
 
@@ -82,7 +89,7 @@ export default async function ContactsPage({ params }: Props) {
                   className="flex justify-between border-b border-dashed border-line pb-2 last:border-0"
                 >
                   <dt>{d}</dt>
-                  <dd className="text-muted">{site.hours}</dd>
+                  <dd className="text-muted">{s.hours}</dd>
                 </div>
               ))}
             </dl>
@@ -111,6 +118,7 @@ export default async function ContactsPage({ params }: Props) {
                 required: c.required,
               }}
               waPrefix={c.waPrefix}
+              waUrl={whatsappUrl(s)}
             />
           </div>
         </div>

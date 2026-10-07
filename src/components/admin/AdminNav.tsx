@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarX, ExternalLink, Flower2, LayoutDashboard, LogOut, Package } from "lucide-react";
+import { CalendarX, ExternalLink, Flower2, LayoutDashboard, LogOut, Package, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -10,6 +10,7 @@ const items = [
   { href: "/admin/orders", label: "Заказы", icon: Package },
   { href: "/admin/bouquets", label: "Букеты", icon: Flower2 },
   { href: "/admin/dates", label: "Недоступные даты", icon: CalendarX },
+  { href: "/admin/settings", label: "Настройки", icon: Settings },
 ];
 
 export default function AdminNav({ email }: { email: string }) {

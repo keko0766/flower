@@ -11,9 +11,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import WhatsAppRedirect from "@/components/checkout/WhatsAppRedirect";
 import Button from "@/components/ui/Button";
-import { getOrderSummary } from "@/lib/data";
+import { getOrderSummary, getSettings } from "@/lib/data";
 import { formatPrice } from "@/lib/format";
-import { site } from "@/lib/site";
+import { phoneHref, whatsappUrl } from "@/lib/site";
 
 export async function generateMetadata({
   params,
@@ -30,10 +30,11 @@ export default async function SuccessPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const { order } = await searchParams;
-  const [t, tFooter, summary] = await Promise.all([
+  const [t, tFooter, summary, s] = await Promise.all([
     getTranslations("success"),
     getTranslations("footer"),
     typeof order === "string" ? getOrderSummary(order) : null,
+    getSettings(),
   ]);
 
   if (!summary) {
@@ -69,7 +70,7 @@ export default async function SuccessPage({
     isPickup ? t("waPickup") : `${t("waAddress")}: ${summary.address}`,
     `${t("waTotal")}: ${formatPrice(summary.total)}`,
   ];
-  const waUrl = `https://wa.me/${site.whatsappPhone}?text=${encodeURIComponent(waLines.join("\n"))}`;
+  const waUrl = whatsappUrl(s, waLines.join("\n"));
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 md:py-20">
@@ -161,32 +162,36 @@ export default async function SuccessPage({
             {t("contactsTitle")}
           </h2>
           <p className="mt-1 text-sm">
-            {t("contactsText", { hours: site.hours })}
+            {t("contactsText", { hours: s.hours })}
           </p>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm">
             <a
-              href={site.phoneHref}
+              href={phoneHref(s)}
               className="flex items-center gap-2 hover:text-blush"
             >
               <Phone size={16} />
-              {site.phone}
+              {s.phone}
             </a>
-            <a
-              href={site.telegram}
-              target="_blank"
-              rel="noopener"
-              className="flex items-center gap-2 hover:text-blush"
-            >
-              <Send size={16} />
-              Telegram
-            </a>
-            <a
-              href={`mailto:${site.email}`}
-              className="flex items-center gap-2 hover:text-blush"
-            >
-              <Mail size={16} />
-              {site.email}
-            </a>
+            {s.telegram && (
+              <a
+                href={s.telegram}
+                target="_blank"
+                rel="noopener"
+                className="flex items-center gap-2 hover:text-blush"
+              >
+                <Send size={16} />
+                Telegram
+              </a>
+            )}
+            {s.email && (
+              <a
+                href={`mailto:${s.email}`}
+                className="flex items-center gap-2 hover:text-blush"
+              >
+                <Mail size={16} />
+                {s.email}
+              </a>
+            )}
           </div>
         </section>
       </div>

@@ -1,18 +1,28 @@
-// Concept data — replace with real shop details.
-export const site = {
-  name: "Ақ Гүл",
-  phone: "+7 (700) 739-23-50",
-  phoneHref: "tel:+77007392350",
-  whatsapp: "https://wa.me/77007392350",
-  telegram: "https://t.me/akgul_flowers",
-  instagram: "https://instagram.com/akgul.flowers",
-  email: "hello@akgul.kz",
-  hours: "08:00–22:00",
-  whatsappPhone: "77007392350",
-  // Display copies; create_order() in Supabase is the source of truth.
-  deliveryPrice: 2000,
-  freeDeliveryFrom: 30000,
-  giftPackagingPrice: 1500,
-  ribbonPrice: 500,
-  slots: ["09:00-12:00", "12:00-15:00", "15:00-18:00", "18:00-21:00"],
+// Brand name is fixed. Everything the owner can change (contacts, prices, slots)
+// lives in the shop_settings table and is edited in the admin panel.
+export const site = { name: "Ақ Гүл" };
+
+export type Settings = {
+  phone: string;
+  whatsappPhone: string | null;
+  telegram: string | null;
+  instagram: string | null;
+  email: string | null;
+  hours: string;
+  deliveryPrice: number;
+  freeDeliveryFrom: number;
+  giftPackagingPrice: number;
+  ribbonPrice: number;
+  slots: string[];
 };
+
+// "+7 (700) 123-45-67" / "8 700 123 45 67" → "77001234567"
+export function normalizePhone(raw: string): string {
+  const d = raw.replace(/\D/g, "");
+  return d.length === 11 && d.startsWith("8") ? `7${d.slice(1)}` : d;
+}
+
+export const phoneHref = (s: Settings) => `tel:+${normalizePhone(s.phone)}`;
+const waNumber = (s: Settings) => normalizePhone(s.whatsappPhone || s.phone);
+export const whatsappUrl = (s: Settings, text?: string) =>
+  `https://wa.me/${waNumber(s)}${text ? `?text=${encodeURIComponent(text)}` : ""}`;

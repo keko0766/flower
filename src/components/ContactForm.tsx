@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import Button from "@/components/ui/Button";
-import { site } from "@/lib/site";
 
 type Labels = { name: string; phone: string; message: string; send: string; required: string };
 
 // No backend: opens WhatsApp with the message prefilled.
-export default function ContactForm({ labels, waPrefix }: { labels: Labels; waPrefix: string }) {
+export default function ContactForm({ labels, waPrefix, waUrl }: { labels: Labels; waPrefix: string; waUrl: string }) {
   const [f, setF] = useState({ name: "", phone: "", message: "" });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
@@ -17,7 +16,7 @@ export default function ContactForm({ labels, waPrefix }: { labels: Labels; waPr
     setErrors(missing);
     if (missing.name || missing.message) return;
     const text = [waPrefix, "", f.message.trim(), "", `— ${f.name.trim()}${f.phone ? `, ${f.phone}` : ""}`].join("\n");
-    window.open(`https://wa.me/${site.whatsappPhone}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    window.open(`${waUrl}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
   }
 
   const cls = (err?: boolean) =>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
-import { getBlockedDates } from "@/lib/data";
+import { getBlockedDates, getSettings } from "@/lib/data";
 
 export async function generateMetadata({
   params,
@@ -29,9 +29,10 @@ export default async function CheckoutPage({
 }: PageProps<"/[locale]/checkout">) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const [t, blocked] = await Promise.all([
+  const [t, blocked, settings] = await Promise.all([
     getTranslations("checkout"),
     getBlockedDates(),
+    getSettings(),
   ]);
 
   return (
@@ -41,6 +42,7 @@ export default async function CheckoutPage({
         minDate={almatyDate(1)}
         maxDate={almatyDate(60)}
         blocked={blocked}
+        settings={settings}
       />
     </div>
   );

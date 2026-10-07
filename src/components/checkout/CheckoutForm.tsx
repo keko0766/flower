@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { type ReactNode, useState, useTransition } from "react";
@@ -18,7 +19,6 @@ type Props = { minDate: string; maxDate: string; blocked: string[]; settings: Se
 const initial = {
   name: "",
   phone: "",
-  email: "",
   recipientIsMe: true,
   recipientName: "",
   recipientPhone: "",
@@ -35,7 +35,6 @@ const initial = {
   cardTo: "",
   packaging: "standard" as "standard" | "gift",
   ribbon: false,
-  payment: "cash" as "cash" | "online",
   comment: "",
   consent: false,
 };
@@ -81,6 +80,8 @@ export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Pr
   const deliveryPrice =
     f.method === "pickup" || subtotal >= settings.freeDeliveryFrom ? 0 : settings.deliveryPrice;
   const total = subtotal + packagingPrice + deliveryPrice;
+  // A different recipient only makes sense for delivery; for pickup the buyer collects the bouquet.
+  const someoneElse = f.method === "delivery" && !f.recipientIsMe;
 
   function validate() {
     const e: typeof errors = {};
@@ -89,8 +90,7 @@ export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Pr
     };
     req("name");
     if (!phoneOk(f.phone)) e.phone = t("errPhone");
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) e.email = t("errEmail");
-    if (!f.recipientIsMe) {
+    if (f.method === "delivery" && !f.recipientIsMe) {
       req("recipientName");
       if (!phoneOk(f.recipientPhone)) e.recipientPhone = t("errPhone");
     }
@@ -116,9 +116,8 @@ export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Pr
         locale,
         customer_name: f.name,
         customer_phone: f.phone,
-        customer_email: f.email,
-        recipient_name: f.recipientIsMe ? f.name : f.recipientName,
-        recipient_phone: f.recipientIsMe ? f.phone : f.recipientPhone,
+        recipient_name: someoneElse ? f.recipientName : f.name,
+        recipient_phone: someoneElse ? f.recipientPhone : f.phone,
         delivery_method: f.method,
         address: f.address,
         apartment: f.apartment,
@@ -132,7 +131,7 @@ export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Pr
         card_to: f.cardTo,
         packaging: f.packaging,
         ribbon: f.ribbon,
-        payment_method: f.payment,
+        payment_method: "cash",
         comment: f.comment,
         consent: f.consent,
         items: items.map((i) => ({ id: i.id, qty: i.qty })),
@@ -165,21 +164,10 @@ export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Pr
     <form onSubmit={submit} noValidate className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
       <div className="space-y-6">
         <Section title={t("you")}>
-          {input("name", t("name"), { autoComplete: "name" })}
           <div className="grid gap-4 sm:grid-cols-2">
+            {input("name", t("name"), { autoComplete: "name" })}
             {input("phone", t("phone"), { type: "tel", autoComplete: "tel", placeholder: "+7 (7__) ___-__-__" })}
-            {input("email", t("email"), { type: "email", autoComplete: "email" })}
           </div>
-        </Section>
-
-        <Section title={t("recipient")}>
-          <Check checked={f.recipientIsMe} onChange={(v) => set("recipientIsMe", v)}>{t("recipientIsMe")}</Check>
-          {!f.recipientIsMe && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {input("recipientName", t("recipientName"))}
-              {input("recipientPhone", t("recipientPhone"), { type: "tel", placeholder: "+7 (7__) ___-__-__" })}
-            </div>
-          )}
         </Section>
 
         <Section title={t("method")}>
@@ -197,6 +185,13 @@ export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Pr
                 {input("floor", t("floor"), { inputMode: "numeric" })}
                 {input("entranceCode", t("entranceCode"))}
               </div>
+              <Check checked={f.recipientIsMe} onChange={(v) => set("recipientIsMe", v)}>{t("recipientIsMe")}</Check>
+              {!f.recipientIsMe && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {input("recipientName", t("recipientName"))}
+                  {input("recipientPhone", t("recipientPhone"), { type: "tel", placeholder: "+7 (7__) ___-__-__" })}
+                </div>
+              )}
             </>
           )}
         </Section>
@@ -222,45 +217,51 @@ export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Pr
           </div>
         </Section>
 
-        <Section title={t("card")}>
-          <Check checked={f.card} onChange={(v) => set("card", v)}>{t("addCard")}</Check>
-          {f.card && (
-            <>
-              <Field id="cardText" label={t("cardText")}>
-                <textarea id="f-cardText" value={f.cardText} maxLength={200} rows={3}
-                  onChange={(e) => set("cardText", e.target.value)} className={inputCls(false)} />
-                <p className="mt-1 text-right text-xs text-muted">{f.cardText.length}/200</p>
-              </Field>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {input("cardFrom", t("cardFrom"), { maxLength: 100 })}
-                {input("cardTo", t("cardTo"), { maxLength: 100 })}
+        <details className="group rounded-[20px] bg-white">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 md:p-6 [&::-webkit-details-marker]:hidden">
+            <span>
+              <span className="font-serif text-2xl">{t("extra")}</span>
+              <span className="mt-1 block text-xs text-muted">{t("extraHint")}</span>
+            </span>
+            <ChevronDown size={20} className="shrink-0 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="space-y-6 border-t border-line p-5 md:p-6">
+            <div className="space-y-4">
+              <Check checked={f.card} onChange={(v) => set("card", v)}>{t("addCard")}</Check>
+              {f.card && (
+                <>
+                  <Field id="cardText" label={t("cardText")}>
+                    <textarea id="f-cardText" value={f.cardText} maxLength={200} rows={3}
+                      onChange={(e) => set("cardText", e.target.value)} className={inputCls(false)} />
+                    <p className="mt-1 text-right text-xs text-muted">{f.cardText.length}/200</p>
+                  </Field>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {input("cardFrom", t("cardFrom"), { maxLength: 100 })}
+                    {input("cardTo", t("cardTo"), { maxLength: 100 })}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm font-medium">{t("packaging")}</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Radio checked={f.packaging === "standard"} onChange={() => set("packaging", "standard")}
+                  title={t("standard")} hint={t("standardHint")} price={t("free")} />
+                <Radio checked={f.packaging === "gift"} onChange={() => set("packaging", "gift")}
+                  title={t("gift")} hint={t("giftHint")} price={`+${formatPrice(settings.giftPackagingPrice)}`} />
               </div>
-            </>
-          )}
-        </Section>
+              <Check checked={f.ribbon} onChange={(v) => set("ribbon", v)}>
+                {t("ribbon")} <span className="text-muted">+{formatPrice(settings.ribbonPrice)}</span>
+              </Check>
+            </div>
 
-        <Section title={t("packaging")}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Radio checked={f.packaging === "standard"} onChange={() => set("packaging", "standard")}
-              title={t("standard")} hint={t("standardHint")} price={t("free")} />
-            <Radio checked={f.packaging === "gift"} onChange={() => set("packaging", "gift")}
-              title={t("gift")} hint={t("giftHint")} price={`+${formatPrice(settings.giftPackagingPrice)}`} />
+            <Field id="comment" label={t("comment")}>
+              <textarea id="f-comment" value={f.comment} maxLength={500} rows={2} placeholder={t("commentPlaceholder")}
+                onChange={(e) => set("comment", e.target.value)} className={inputCls(false)} />
+            </Field>
           </div>
-          <Check checked={f.ribbon} onChange={(v) => set("ribbon", v)}>
-            {t("ribbon")} <span className="text-muted">+{formatPrice(settings.ribbonPrice)}</span>
-          </Check>
-        </Section>
-
-        <Section title={t("payment")}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Radio checked={f.payment === "cash"} onChange={() => set("payment", "cash")} title={t("cash")} hint={t("cashHint")} />
-            <Radio checked={false} disabled onChange={() => {}} title={t("online")} hint={t("onlineHint")} />
-          </div>
-          <Field id="comment" label={t("comment")}>
-            <textarea id="f-comment" value={f.comment} maxLength={500} rows={2} placeholder={t("commentPlaceholder")}
-              onChange={(e) => set("comment", e.target.value)} className={inputCls(false)} />
-          </Field>
-        </Section>
+        </details>
       </div>
 
       <aside className="h-fit space-y-5 rounded-[20px] bg-white p-5 md:p-6 lg:sticky lg:top-28">
@@ -287,6 +288,10 @@ export default function CheckoutForm({ minDate, maxDate, blocked, settings }: Pr
             <dd>{formatPrice(total)}</dd>
           </div>
         </dl>
+
+        <p className="text-xs text-muted">
+          <span className="font-medium text-ink">{t("payment")}: {t("cash")}.</span> {t("cashHint")}
+        </p>
 
         <div id="f-consent">
           <Check checked={f.consent} onChange={(v) => set("consent", v)}>

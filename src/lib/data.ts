@@ -217,7 +217,7 @@ export type OrderSummary = {
   delivery_slot: string;
   address: string | null;
   recipient_name: string;
-  customer_email: string;
+  customer_email: string | null;
   items_total: number;
   packaging_price: number;
   delivery_price: number;

@@ -6,7 +6,6 @@ export type OrderPayload = {
   locale: string;
   customer_name: string;
   customer_phone: string;
-  customer_email: string;
   recipient_name: string;
   recipient_phone: string;
   delivery_method: "delivery" | "pickup";

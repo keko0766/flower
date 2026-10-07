@@ -40,7 +40,7 @@ export default async function OrderPage({ params }: PageProps<"/admin/orders/[id
         <Card title="Заказчик">
           <p className="font-medium">{o.customer_name}</p>
           <Phone value={o.customer_phone} />
-          <a href={`mailto:${o.customer_email}`} className="block text-sm hover:text-rose">{o.customer_email}</a>
+          {o.customer_email && <a href={`mailto:${o.customer_email}`} className="block text-sm hover:text-rose">{o.customer_email}</a>}
         </Card>
         <Card title="Получатель">
           <p className="font-medium">{o.recipient_name}</p>
